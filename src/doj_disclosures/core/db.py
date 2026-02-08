@@ -784,6 +784,75 @@ class Database:
         finally:
             await conn.close()
 
+    async def fts_search_with_metrics(self, *, query: str, limit: int = 200) -> list[dict[str, Any]]:
+        """FTS search that also returns stored document metrics and review status.
+
+        This supports more advanced ranking without requiring external services.
+        """
+
+        q = (query or "").strip()
+        if not q:
+            return []
+        conn = await self._connect()
+        try:
+            # FTS5: lower bm25() is better.
+            async with conn.execute(
+                "SELECT f.doc_id, f.url, f.title, bm25(f) as bm25, "
+                "d.relevance_score, d.topic_similarity, d.entity_density, d.url_penalty, COALESCE(r.status,'new') as review_status "
+                "FROM fts_docs f "
+                "LEFT JOIN documents d ON d.id=f.doc_id "
+                "LEFT JOIN doc_reviews r ON r.doc_id=f.doc_id "
+                "WHERE f MATCH ? ORDER BY bm25 ASC LIMIT ?",
+                (q, int(limit)),
+            ) as cur:
+                rows = await cur.fetchall()
+                out: list[dict[str, Any]] = []
+                for r in rows:
+                    out.append(
+                        {
+                            "doc_id": int(r[0]),
+                            "url": r[1],
+                            "title": r[2] or "",
+                            "bm25": float(r[3]) if r[3] is not None else 0.0,
+                            "relevance_score": (float(r[4]) if r[4] is not None else None),
+                            "topic_similarity": (float(r[5]) if r[5] is not None else None),
+                            "entity_density": (float(r[6]) if r[6] is not None else None),
+                            "url_penalty": (float(r[7]) if r[7] is not None else None),
+                            "review_status": str(r[8]) if r[8] else "new",
+                        }
+                    )
+                return out
+        except Exception:
+            like = f"%{q}%"
+            async with conn.execute(
+                "SELECT f.doc_id, f.url, f.title, 0.0 as bm25, "
+                "d.relevance_score, d.topic_similarity, d.entity_density, d.url_penalty, COALESCE(r.status,'new') as review_status "
+                "FROM fts_docs f "
+                "LEFT JOIN documents d ON d.id=f.doc_id "
+                "LEFT JOIN doc_reviews r ON r.doc_id=f.doc_id "
+                "WHERE f.title LIKE ? OR f.content LIKE ? LIMIT ?",
+                (like, like, int(limit)),
+            ) as cur:
+                rows = await cur.fetchall()
+                out: list[dict[str, Any]] = []
+                for r in rows:
+                    out.append(
+                        {
+                            "doc_id": int(r[0]),
+                            "url": r[1],
+                            "title": r[2] or "",
+                            "bm25": 0.0,
+                            "relevance_score": (float(r[4]) if r[4] is not None else None),
+                            "topic_similarity": (float(r[5]) if r[5] is not None else None),
+                            "entity_density": (float(r[6]) if r[6] is not None else None),
+                            "url_penalty": (float(r[7]) if r[7] is not None else None),
+                            "review_status": str(r[8]) if r[8] else "new",
+                        }
+                    )
+                return out
+        finally:
+            await conn.close()
+
     async def add_matches(self, *, doc_id: int, matches: Iterable[tuple[str, str, float, str]], created_at: str) -> None:
         conn = await self._connect()
         try:
