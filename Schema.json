@@ -1,0 +1,38 @@
+{
+  "dataset_name": "DOJ_Epstein_Disclosures_Entity_Index",
+  "source_url": "https://www.justice.gov/epstein/doj-disclosures",
+  "last_updated": "YYYY-MM-DD",
+  "entities": [
+    {
+      "full_name": "STRING",
+      "aliases": ["STRING"],
+      "entity_type": "person | organization | government_agency | legal_entity",
+      "role_context": [
+        "alleged_associate",
+        "staff",
+        "victim",
+        "witness",
+        "investigator",
+        "legal_counsel",
+        "journalist",
+        "pilot",
+        "business_contact",
+        "other"
+      ],
+      "document_reference": {
+        "document_title": "STRING",
+        "document_type": "court_filing | deposition | flight_log | contact_book | email | report",
+        "page_number": "INTEGER_OR_RANGE",
+        "release_batch": "STRING",
+        "publication_date": "YYYY-MM-DD",
+        "official_url": "STRING"
+      },
+      "mention_context": "Brief neutral excerpt or summary of how the name appears",
+      "verification_status": "unverified_mention | corroborated | redacted_partial",
+      "legal_status": "no_charge | charged | convicted | acquitted | unknown",
+      "notes": "Freeform research notes",
+      "extracted_by": "human | automated_nlp",
+      "confidence_score": 0.0
+    }
+  ]
+}

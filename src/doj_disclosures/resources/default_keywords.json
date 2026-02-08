@@ -1,0 +1,22 @@
+{
+  "version": "1.0",
+  "description": "Seed keywords for automated triage (broad, imperfect).",
+  "seed_keywords": [
+    "minor",
+    "underage",
+    "child",
+    "teen",
+    "trafficking",
+    "coercion",
+    "flight log",
+    "passenger list",
+    "private jet",
+    "payment",
+    "gift",
+    "confidential",
+    "discreet",
+    "blackmail",
+    "re:minor\\s+victim",
+    "esc*"
+  ]
+}

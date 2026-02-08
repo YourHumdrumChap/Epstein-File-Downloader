@@ -1,0 +1,20 @@
+__pycache__/
+*.py[cod]
+*.pyd
+.Python
+build/
+dist/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+env/
+.env
+
+# App data (local DB, logs)
+.appdata/
+
+# User outputs
+output/
